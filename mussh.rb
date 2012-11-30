@@ -7,7 +7,7 @@ require 'net/ssh/multi'
 options = {}
 
 ARGV.options do |opts|
-    opts.banner = "Usage: ruby pressh.rb -f {host files} -c command or ruby pressh.rb -h test1,test2 =c command"
+    opts.banner = "Usage: ruby pressh.rb -h test1.example.com,test2.example.com -c 'uptime'"
     opts.on(:REQUIRED, '-f', '--file', "The environment to run this script against.") do |hosts|
         options[:hostsFile] = hosts
     end
