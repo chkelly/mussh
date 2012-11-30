@@ -7,12 +7,12 @@ require 'net/ssh/multi'
 options = {}
 
 ARGV.options do |opts|
-    opts.banner = "Usage: ruby pressh.rb -h test1.example.com,test2.example.com -c 'uptime'"
+    opts.banner = "Usage: ruby pressh.rb -f {host files} -c command or ruby pressh.rb -h test1,test2 =c command"
     opts.on(:REQUIRED, '-f', '--file', "The environment to run this script against.") do |hosts|
         options[:hostsFile] = hosts
     end
     opts.on(:REQUIRED, '-h', '--hosts', "A command delimited list of hosts to run against.") do |hosts|
-    	options[:hosts] = hosts
+        options[:hosts] = hosts
     end
     opts.on(:REQUIRED, '-c', '--command', "Command to be executed on each server") do |command|
         options[:command] = command
@@ -28,7 +28,7 @@ ARGV.options do |opts|
             throw Exception
         end
         if options.include? :hosts and options.include? :hostsFile
-        	throw Exception
+            throw Exception
         end
     rescue
         puts opts
@@ -39,21 +39,21 @@ end
 ######################################################################################
 ############################### The Magic ############################################
 ######################################################################################
-Net::SSH::Multi.start do |session|
-	if options[:hostsFile]
-		File.open(options[:hostsFile]) do |f|
-			f.each_line do |line|
-				session.use line
-			end
-		end
-	else
+Net::SSH::Multi.start(:concurrent_connections => 10, :on_error => :warn) do |session|
+    if options[:hostsFile]
+        File.open(options[:hostsFile]) do |f|
+            f.each_line do |line|
+                session.use line
+            end
+        end
+    else
 
-		options[:hosts].split(',').each do |h|
-			session.use h
-		end
-	end
+        options[:hosts].split(',').each do |h|
+            session.use h
+        end
+    end
 
-	session.exec options[:command]
+    session.exec options[:command]
 
-	session.loop
+    session.loop
 end
