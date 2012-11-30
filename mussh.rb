@@ -39,6 +39,16 @@ end
 ######################################################################################
 ############################### The Magic ############################################
 ######################################################################################
+handler = Proc.new do |server|
+  server[:connection_attempts] ||= 0
+  if server[:connection_attempts] < 3
+    server[:connection_attempts] += 1
+    throw :go, :retry
+  else
+    throw :go, :raise
+  end
+end
+
 Net::SSH::Multi.start(:concurrent_connections => 10, :on_error => :warn) do |session|
     if options[:hostsFile]
         File.open(options[:hostsFile]) do |f|
